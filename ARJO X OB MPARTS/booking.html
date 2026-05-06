@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arjo X OB | Checkout & Booking</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root {
+      --step-inactive: #333;
+      --step-active: var(--accent-gold);
+    }
+
+    .checkout-container {
+      max-width: 1000px;
+      margin: 60px auto;
+      padding: 40px;
+      background: var(--bg-secondary);
+      border-radius: 40px;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+    }
+
+    .stepper {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 50px;
+      position: relative;
+    }
+
+    .stepper::before {
+      content: '';
+      position: absolute;
+      top: 25px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--step-inactive);
+      z-index: 1;
+    }
+
+    .step {
+      position: relative;
+      z-index: 2;
+      background: var(--bg-secondary);
+      padding: 0 20px;
+      text-align: center;
+    }
+
+    .step-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--step-inactive);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      font-weight: 700;
+      transition: var(--transition);
+      border: 2px solid transparent;
+    }
+
+    .step.active .step-icon {
+      background: var(--accent-gold);
+      color: #000;
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+    }
+
+    .step.completed .step-icon {
+      background: var(--accent-green);
+      color: #000;
+    }
+
+    .step-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+    }
+
+    .step.active .step-label {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .flow-panel {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .flow-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .summary-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    .payment-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .payment-method {
+      background: var(--glass);
+      border: 2px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 24px;
+      cursor: pointer;
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .payment-method:hover {
+      border-color: var(--accent-gold);
+      background: rgba(212, 175, 55, 0.05);
+    }
+
+    .payment-method.selected {
+      border-color: var(--accent-gold);
+      background: rgba(212, 175, 55, 0.12);
+      box-shadow: 0 20px 40px rgba(212, 175, 55, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .payment-method i {
+      font-size: 2rem;
+      margin-bottom: 12px;
+      color: var(--accent-gold);
+    }
+
+    .gcash-details,
+    .maya-details {
+      margin-top: 30px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 28px;
+      padding: 28px;
+      color: #fff;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+    }
+
+    .gcash-details {
+      background: #0f1432;
+    }
+
+    .maya-details {
+      background: #07101f;
+    }
+
+    .gcash-details.hidden,
+    .maya-details.hidden {
+      display: none;
+    }
+
+    .gcash-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      gap: 20px;
+    }
+
+    .gcash-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.06);
+      font-size: 0.9rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: #b8c4ff;
+    }
+
+    .gcash-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .gcash-subtitle {
+      color: #a3b0ff;
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+    }
+
+    .gcash-field {
+      width: 100%;
+      margin-bottom: 18px;
+    }
+
+    .gcash-field label {
+      display: block;
+      margin-bottom: 8px;
+      color: #97a0f3;
+      font-size: 0.85rem;
+    }
+
+    .gcash-field input {
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .gcash-field input:focus {
+      border-color: rgba(212,175,55,0.8);
+    }
+
+    .gcash-button {
+      width: 100%;
+      padding: 16px 24px;
+      border-radius: 18px;
+      background: linear-gradient(90deg, #fac522, #ffd24f);
+      border: none;
+      color: #000;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .gcash-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .gcash-hint {
+      margin-top: 12px;
+      color: #8ea3ff;
+      font-size: 0.9rem;
+    }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .price-total {
+      border-top: 1px solid var(--glass-border);
+      padding-top: 15px;
+      margin-top: 15px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent-gold);
+    }
+
+    .success-modal {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .success-modal i {
+      font-size: 5rem;
+      color: var(--accent-green);
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container header-flex">
+      <div class="logo">
+        <h1>ARJO X OB</h1>
+        <p>Checkout & Booking</p>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html">Back to Store</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="checkout-container">
+      
+      <!-- STEPPER -->
+      <div class="stepper">
+        <div class="step active" id="step1">
+          <div class="step-icon">1</div>
+          <span class="step-label">Selection</span>
+        </div>
+        <div class="step" id="step2">
+          <div class="step-icon">2</div>
+          <span class="step-label">Payment</span>
+        </div>
+      </div>
+
+      <!-- STEP 1: SUMMARY -->
+      <div id="panel1" class="flow-panel active">
+        <h2 class="section-title" style="font-size: 2rem;">Booking Summary</h2>
+        <div class="summary-card">
+          <div id="summaryContent">
+            <!-- Dynamic selection info -->
+          </div>
+          <div class="price-total">
+            Total: <span id="totalAmount">₱0.00</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 20px;">
+          <button class="btn" onclick="nextStep(2)">Continue to Payment</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: PAYMENT -->
+      <div id="panel2" class="flow-panel">
+        <h2 class="section-title" style="font-size: 2rem;">Choose Payment</h2>
+        <p style="color: var(--text-secondary);">Secure your booking with our trusted payment partners.</p>
+        <div class="payment-options">
+          <div class="payment-method" onclick="selectPayment(this, 'GCash')">
+            <i class="fas fa-wallet"></i>
+            <h3>GCash</h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Direct Payment</p>
+          </div>
+          <div class="payment-method" onclick="selectPayment(this, 'Maya')">
+            <i class="fas fa-mobile-alt"></i>
+            <h3>Maya</h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Digital Wallet</p>
+          </div>
+          <div class="payment-method" onclick="selectPayment(this, 'Bank Transfer')">
+            <i class="fas fa-university"></i>
+            <h3>Bank</h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">BDO / BPI / UnionBank</p>
+          </div>
+        </div>
+
+        <div id="gcashDetails" class="gcash-details hidden">
+          <div class="gcash-header">
+            <div>
+              <div class="gcash-title">GCash Payment</div>
+              <div class="gcash-subtitle">Login to pay with GCash</div>
+            </div>
+            <div class="gcash-chip"><i class="fas fa-wallet"></i> AUB YOSHII SOFTWARE SO...</div>
+          </div>
+          <div class="gcash-field">
+            <label>Amount Due</label>
+            <div style="font-size: 2rem; font-weight: 700; color: #fff;">₱<span id="gcashAmount">0.00</span></div>
+          </div>
+          <div class="gcash-field">
+            <label>Mobile number</label>
+            <input id="mobileNumber" type="tel" placeholder="0917 123 4567" maxlength="11">
+          </div>
+          <button class="gcash-button" id="gcashNextBtn" type="button">Next</button>
+          <div class="gcash-hint">You will be redirected to the GCash app or web pay page after confirming.</div>
+        </div>
+
+        <div id="mayaDetails" class="maya-details hidden">
+          <div class="gcash-header">
+            <div>
+              <div class="gcash-title">Maya Payment</div>
+              <div class="gcash-subtitle">Secure checkout through Maya</div>
+            </div>
+            <div class="gcash-chip"><i class="fas fa-mobile-alt"></i> MAYA PAY</div>
+          </div>
+          <div class="gcash-field">
+            <label>Amount Due</label>
+            <div style="font-size: 2rem; font-weight: 700; color: #fff;">₱<span id="mayaAmount">0.00</span></div>
+          </div>
+          <div class="gcash-field">
+            <label>Maya mobile / email</label>
+            <input id="mayaIdentifier" type="text" placeholder="0917 123 4567 or name@email.com">
+          </div>
+          <button class="gcash-button" id="mayaNextBtn" type="button">Next</button>
+          <div class="gcash-hint">Use the same number or email registered with Maya to continue.</div>
+        </div>
+
+        <div style="display: flex; gap: 20px; margin-top: 40px;">
+          <button class="btn-outline btn" onclick="prevStep(1)">Back</button>
+          <button class="btn" id="finishBtn" disabled>Pay & Confirm Booking</button>
+        </div>
+      </div>
+
+      <!-- SUCCESS PANEL -->
+      <div id="panelSuccess" class="flow-panel">
+        <div class="success-modal">
+          <i class="fas fa-check-circle"></i>
+          <h2 class="section-title">Ride Ready!</h2>
+          <p class="legacy-lead">Your booking has been confirmed.</p>
+          <p style="color: var(--text-secondary); margin-bottom: 30px;">We've sent the receipt and schedule details to your account dashboard. Get ready for peak performance!</p>
+          <button class="btn" onclick="window.location.href='index.html'">Back to Home</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="booking.js"></script>
+</body>
+</html>
